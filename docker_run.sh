@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # update from github
+git pull
+pip install --no-cache-dir -r requirements.txt
 
 # /data 경로에 설정파일과 로그파일 원본을 준비한다. 이미 파일이 있으면 생략한다.
 ls /data/config.json >/dev/null 2>&1 || mv config.json /data

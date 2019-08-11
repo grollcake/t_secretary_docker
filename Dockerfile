@@ -17,12 +17,13 @@ MAINTAINER grollcake@gmail.com
 # 공식 이미지의 기본 작업경로는 /usr/src/app이다
 WORKDIR /usr/src/app
 
-# 파이썬 패키지 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# github로부터 내려받기
+RUN apt update && apt install -y git
+RUN git clone https://github.com/grollcake/t_secretary_docker.git
 
-# 소스파일 복사
-COPY . .
+# 패키지 설치
+WORKDIR /usr/src/app/t_secretary_docker
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 볼륨설정: /data 경로에 config.json, t_secretary.log 파일을 공개한다.
 VOLUME ["/data"]
