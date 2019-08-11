@@ -28,6 +28,7 @@ def get_config():
     config['DS_SERVER'] = os.getenv('DS_SERVER', config['DS_SERVER'])
     config['DS_USER'] = os.getenv('DS_USER', config['DS_USER'])
     config['DS_PASS'] = os.getenv('DS_PASS', config['DS_PASS'])
+    config['DOWNLOAD_PATH'] = os.getenv('DOWNLOAD_PATH', config['DOWNLOAD_PATH'])
 
     # 3. 환경변수인해 값이 변경됐을 수도 있으니까 환경파일에 다시 기록한다.
     if config != file_config:
