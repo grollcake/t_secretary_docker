@@ -1,6 +1,6 @@
 {
-    "BOT_TOKEN": "",
-    "DS_SERVER": "",
+    "BOT_TOKEN": "update-me",
+    "DS_SERVER": "http://172.17.0.1:5000",
     "DS_USER": "",
     "DS_PASS": "",
     "DOWNLOAD_PATH": "",
