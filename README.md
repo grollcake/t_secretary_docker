@@ -9,7 +9,7 @@ sudo docker run -d --name t_secretary  \
             -e DS_USER=<username>  \
             -e DS_PASS=<yourpasswords>  \
             -e DOWNLOAD_PATH=<yourdownloadpath>  \
-            t_secretary:latest
+            grollcake/t_secretary:latest
 ```
 
 ## 텔레그램 명령어 도우미 등록

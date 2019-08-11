@@ -1,6 +1,5 @@
-# Docker build:   sudo docker build -t t_secretary:latest .
-# Docker test:    sudo docker run -it --rm t_secretary:latest /bin/bash
-# Docker push:    sudo docker tag t_secretary:latest grollcake/t_secretary:latest
+# Docker build:   sudo docker build -t grollcake/t_secretary:latest .
+# Docker test:    sudo docker run -it --rm grollcake/t_secretary:latest /bin/bash
 # Docker push:    sudo docker push grollcake/t_secretary:latest
 # Docker run:     sudo docker run -d --name t_secretary  \
 #                             -v <your_data_dir>:/data  \
@@ -9,7 +8,7 @@
 #                             -e DS_USER=<username>  \
 #                             -e DS_PASS=<yourpasswords>  \
 #                             -e DOWNLOAD_PATH=<yourdownloadpath>  \
-#                             t_secretary:latest
+#                             grollcake/t_secretary:latest
 
 # python3 도커 이미지 사용
 FROM python:3
