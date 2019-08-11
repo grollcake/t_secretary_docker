@@ -1,0 +1,28 @@
+﻿# *.dcu     하위디렉토리를 포함한 hoge.dcu 등의 파일을 무시
+# /*.exe    최상위디렉토리의 *.exe 파일만 무시. 하위디렉토리는 무시하지 않는다.
+# tmp/      tmp 디렉토리 전체를 무시하는 경우.
+# cache/*.* cache 디렉토리를의 안에파일을 전부 무시.
+# !.htaccess  그리고 .htaccess 는 제외(무시대상에 제외)
+# *.o       전부 무시.
+
+.idea/
+.vscode/
+venv/
+__pycache__/
+.c9/*
+*.db
+*.pyc
+*.log
+*.swp
+*.sqlite
+
+*.iml
+.gradle
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+cookie.txt
+s
