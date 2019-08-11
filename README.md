@@ -1,5 +1,16 @@
 텔레그램을 이용한 시놀로지 다운로드 비서 봇
  
+## 도커 실행
+```
+sudo docker run -d --name t_secretary  \
+            -v <your_data_dir>:/data  \
+            -e BOT_TOKEN=<your_token>  \
+            -e DS_SERVER=http://172.17.0.1:5000  \
+            -e DS_USER=<username>  \
+            -e DS_PASS=<yourpasswords>  \
+            -e DOWNLOAD_PATH=<yourdownloadpath>  \
+            t_secretary:latest
+```
 
 ## 텔레그램 명령어 도우미 등록
 BotFather를 통해 아래 명령어를 등록한다.

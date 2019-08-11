@@ -1,5 +1,7 @@
 # Docker build:   sudo docker build -t t_secretary:latest .
 # Docker test:    sudo docker run -it --rm t_secretary:latest /bin/bash
+# Docker push:    sudo docker tag t_secretary:latest grollcake/t_secretary:latest
+# Docker push:    sudo docker push grollcake/t_secretary:latest
 # Docker run:     sudo docker run -d --name t_secretary  \
 #                             -v <your_data_dir>:/data  \
 #                             -e BOT_TOKEN=<your_token>  \
