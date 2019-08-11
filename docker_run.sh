@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # update from github
+git checkout -- .  # local 변경 내역 모두 취소
 git pull
 pip install --no-cache-dir -r requirements.txt
 
