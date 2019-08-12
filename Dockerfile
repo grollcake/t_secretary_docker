@@ -31,6 +31,10 @@ VOLUME ["/data"]
 
 # 환경변수 Set
 ENV TZ="Asia/Seoul"
+ENV UID=0
+ENV GID=0
+
+# 사용자 환경변수 Set
 ENV BOT_TOKEN ""
 ENV DS_SERVER ""
 ENV DS_USER   ""
