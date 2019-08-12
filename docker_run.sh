@@ -9,6 +9,9 @@ pip install --no-cache-dir -r requirements.txt
 ls /data/config.json >/dev/null 2>&1 || mv config.json /data
 ls /data/t_secretary.log >/dev/null 2>&1 || touch /data/t_secretary.log
 
+# UID, GID를 지정했다면 소유자를 변경한다.
+chown ${UID:-0}:${GID:-0} /data/*
+
 # /data 경로의 파일을 실행 디렉토리로 링크를 건다.
 rm -f config.json t_secretary.log
 ln -s /data/config.json .

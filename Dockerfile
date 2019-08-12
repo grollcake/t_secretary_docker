@@ -30,6 +30,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 VOLUME ["/data"]
 
 # 환경변수 Set
+ENV TZ="Asia/Seoul"
 ENV BOT_TOKEN ""
 ENV DS_SERVER ""
 ENV DS_USER   ""
@@ -38,3 +39,4 @@ ENV DOWNLOAD_PATH ""
 
 # 실행
 CMD ["/bin/bash", "./docker_run.sh"]
+
