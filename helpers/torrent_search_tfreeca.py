@@ -9,7 +9,14 @@ from bs4 import BeautifulSoup
 
 def torrent_search(keyword):
     logger = logging.getLogger('t_secretary')
-    boards = {'tent': '예능', 'tv': 'TV', 'tdrama': '드라마'}
+
+    # 애니메이션 '애니 검색어' 형태로 입력했을때만 검색한다.
+    if keyword.split(' ')[0] == '애니':
+        keyword = ' '.join(keyword.split(' ')[1:])
+        boards = {'tani': '애니'}
+    else:
+        boards = {'tent': '예능', 'tv': 'TV', 'tdrama': '드라마'}
+
     search_results = []
 
     for board in boards.keys():
@@ -143,7 +150,8 @@ if __name__ == '__main__':
     # rs = torrent_popular_list()
     # print(len(rs))
     # print(rs)
-    info = torrent_info_from_url('http://www.tfreeca22.com/board.php?mode=view&b_id=tent&id=976573&page=1')
-    pprint(info)
-
+    # info = torrent_info_from_url('http://www.tfreeca22.com/board.php?mode=view&b_id=tent&id=976573&page=1')
+    # pprint(info)
+    rs = torrent_search('애니 명탐정')
+    pprint(rs)
 
