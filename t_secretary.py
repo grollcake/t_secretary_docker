@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-import hashlib
-import json
 import os
+import hashlib
 import logging
 import pickle
 import pprint
@@ -15,7 +14,7 @@ from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from helpers.config import get_config, set_config
 from helpers.download_station import ds_list, ds_add_magnet
 from helpers.nas_files import nas_files
-from helpers.torrent_search_tfreeca import torrent_search, torrent_popular_list, torrent_info_from_url
+from helpers.torrent_search_torrentwal import torrent_search, torrent_popular_list, torrent_info_from_url
 
 bot = None
 conn = None
