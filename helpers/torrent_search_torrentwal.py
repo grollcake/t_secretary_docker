@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 def torrent_search(keyword):
     logger = logging.getLogger('t_secretary')
     search_results = []
-    req = requests.get(url='https://torrentwal.com/bbs/s.php', params={'k': keyword})
+    req = requests.get(url='https://torrentwal2.com/bbs/s.php', params={'k': keyword})
     if not req.ok:
         print('Something wrong')
         return
