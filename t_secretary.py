@@ -294,18 +294,24 @@ def chat_popular(chat_id):
 
 def chat_popular_step2(chat_id, url):
     torrent = torrent_info_from_url(url)
-    # 토렌트 정보를 보여주고 진짜로 다운로드 받을거냐고 물어야 함
-    callback_key = get_md5(torrent['magnet'])
-    db_set_data(key=callback_key, type='MAGNET', data=torrent['magnet'])
 
-    msg = '{}\n * 크기: {}\n * 생성일자: {}\n다운로드 받을까요?'.format(
-        torrent['subject'], torrent['size'], torrent['timestr'].strftime('%Y-%m-%d'))
+    # 묻지 않고 바로 다운로드 시작 (2020.01.12)
+    chat_add_magnet(chat_id=chat_id, magnet=torrent['magnet'], subject=torrent['subject'], size=torrent['size'])
 
-    select_list = list()
-    select_list.append([InlineKeyboardButton(text='네', callback_data=callback_key),
-                        InlineKeyboardButton(text='아니오', callback_data='Nothing')])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=select_list)
-    bot.sendMessage(chat_id, msg, reply_markup=keyboard)
+    # # 토렌트 정보를 보여주고 진짜로 다운로드 받을거냐고 물어야 함
+    # callback_key = get_md5(torrent['magnet'])
+    # db_set_data(key=callback_key, type='MAGNET', data=torrent['magnet'])
+    #
+    # msg = '{}\n * 크기: {}\n * 생성일자: {}\n다운로드 받을까요?'.format(
+    #     torrent['subject'], torrent['size'], torrent['timestr'].strftime('%Y-%m-%d'))
+    #
+    # select_list = list()
+    # select_list.append([InlineKeyboardButton(text='네', callback_data=callback_key),
+    #                     InlineKeyboardButton(text='아니오', callback_data='Nothing')])
+    # keyboard = InlineKeyboardMarkup(inline_keyboard=select_list)
+    # bot.sendMessage(chat_id, msg, reply_markup=keyboard)
+
+    return
 
 
 def chat_files(chat_id, nas_path=None):
