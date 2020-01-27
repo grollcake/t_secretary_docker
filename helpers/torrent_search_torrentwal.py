@@ -6,11 +6,14 @@ import requests
 from requests.compat import urljoin
 from bs4 import BeautifulSoup
 
+T_SITE = 'https://torrentwal.com'
+
 
 def torrent_search(keyword):
     logger = logging.getLogger('t_secretary')
     search_results = []
-    req = requests.get(url='https://torrentwal.com/bbs/s.php', params={'k': keyword})
+    url = T_SITE + '/bbs/s.php'
+    req = requests.get(url=url, params={'k': keyword}, verify=False)
     if not req.ok:
         print('Something wrong')
         return
@@ -101,7 +104,8 @@ def torrent_popular_list():
     logger = logging.getLogger('t_secretary')
     search_results = []
 
-    req = requests.get(url='https://torrentwal.com/bbs/popular.html')
+    url = T_SITE + '/bbs/popular.html'
+    req = requests.get(url=url, verify=False)
     if not req.ok:
         print('Something wrong')
         return
@@ -114,7 +118,7 @@ def torrent_popular_list():
     results = soup.select('#fieldset_list > fieldset:nth-child(2) > table > tr > td > a')
     for idx, result in enumerate(results, start=1):
         subject = '[예능] ' + result.text.strip()
-        url = urljoin('https://torrentwal.com/bbs', result.get('href'))
+        url = urljoin(T_SITE + '/bbs', result.get('href'))
         search_results.append({'subject': subject, 'url': url})
         logger.debug('{}) {} - {}'.format(idx, subject, url))
 
@@ -122,7 +126,7 @@ def torrent_popular_list():
     results = soup.select('#fieldset_list > fieldset:nth-child(3) > table > tr > td > a')
     for idx, result in enumerate(results, start=1):
         subject = '[드라마] ' + result.text.strip()
-        url = urljoin('https://torrentwal.com/bbs', result.get('href'))
+        url = urljoin(T_SITE + '/bbs', result.get('href'))
         search_results.append({'subject': subject, 'url': url})
         logger.debug('{}) {} - {}'.format(idx, subject, url))
 
@@ -130,7 +134,7 @@ def torrent_popular_list():
     results = soup.select('#fieldset_list > fieldset:nth-child(4) > table > tr > td > a')
     for idx, result in enumerate(results, start=1):
         subject = '[다큐] ' + result.text.strip()
-        url = urljoin('https://torrentwal.com/bbs', result.get('href'))
+        url = urljoin(T_SITE + '/bbs', result.get('href'))
         search_results.append({'subject': subject, 'url': url})
         logger.debug('{}) {} - {}'.format(idx, subject, url))
 
@@ -141,7 +145,7 @@ def torrent_info_from_url(url):
     info = {'subject': None, 'magnet': None, 'size': None, 'timestr': None}
     logger = logging.getLogger('t_secretary')
 
-    req = requests.get(url=url)
+    req = requests.get(url=url, verify=False)
     if not req.ok:
         return None
     req.encoding = 'utf-8'
