@@ -14,7 +14,7 @@ from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from helpers.config import get_config, set_config
 from helpers.download_station import ds_list, ds_add_magnet
 from helpers.nas_files import nas_files
-from helpers.torrent_search_torrentwal import torrent_search, torrent_popular_list, torrent_info_from_url
+from helpers.torrent_search_torrentvery import torrent_search, torrent_popular_list, torrent_info_from_url
 
 bot = None
 conn = None
@@ -112,7 +112,7 @@ def db_get_data(key):
 
 def make_button_text(idx, torrent):
     text1 = '{}) '.format(idx)
-    text1 += '[{}] '.format(torrent['category']) if 'category' in torrent else ''
+    text1 += '[{}] '.format(torrent['category']) if ('category' in torrent and torrent['category'] is not None) else ''
     text1 += '{} '.format(torrent['subject'])
     text2 = ''
 
@@ -201,7 +201,7 @@ def chat_search(chat_id, keyword):
     for idx, torrent in enumerate(torrents, start=1):
         button_text = make_button_text(idx, torrent)
 
-        callback_key = get_md5(torrent['magnet']) if torrent['magnet'] else get_md5(torrent['url'])
+        callback_key = get_md5(torrent['magnet']) if torrent['magnet'] else get_md5(torrent['page_url'])
         db_set_data(key=callback_key, type='TORRENT', data=torrent)  # DB에 저장
         select_list.append([InlineKeyboardButton(text=button_text, callback_data=callback_key)])
 
@@ -221,7 +221,7 @@ def chat_search_step2(chat_id, torrent):
     if torrent['magnet']:
         chat_add_magnet(chat_id=chat_id, magnet=torrent['magnet'], subject=torrent['subject'], size=torrent['size'])
     else:
-        chat_popular_step2(chat_id, torrent['url'])  # 한번 확인하고 다운받게 한다.
+        chat_popular_step2(chat_id, torrent['page_url'])  # 한번 확인하고 다운받게 한다.
 
 
 def chat_list(chat_id):
@@ -279,11 +279,15 @@ def chat_popular(chat_id):
     populars = torrent_popular_list()
     select_list = list()
 
+    if not isinstance(populars, list):
+        bot.sendMessage(chat_id, '뭔가 문제가 생겼습니다.')
+        return
+
     for idx, popular in enumerate(populars, start=1):
         button_text = make_button_text(idx, popular)
-        callback_key = get_md5(popular['url'])
+        callback_key = get_md5(popular['page_url'])
         select_list.append([InlineKeyboardButton(text=button_text, callback_data=callback_key)])
-        db_set_data(key=callback_key, type='POPULAR', data=popular['url'])  # DB에 저장
+        db_set_data(key=callback_key, type='POPULAR', data=popular['page_url'])  # DB에 저장
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=select_list)
 
