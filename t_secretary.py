@@ -49,13 +49,13 @@ def init_log():
 
     sh = logging.StreamHandler()
     sh.setLevel(logging.INFO)
-    sh.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
+    sh.setFormatter(logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
                                       datefmt='%Y/%m/%d %H:%M:%S'))
     logger.addHandler(sh)
 
     fh = RotatingFileHandler(filename=logfile, encoding='utf-8', maxBytes=10 * 1024 * 1024, backupCount=0)
     fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
+    fh.setFormatter(logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
                                       datefmt='%Y/%m/%d %H:%M:%S'))
 
     logger.addHandler(fh)
@@ -67,25 +67,33 @@ def get_md5(string):
 
 
 def db_set_data(key=None, type=None, data=None, datasets=None):
-    c = conn.cursor()
+    logger.debug("DeleteMe: before conn.cursor()")
+    cursor = conn.cursor()
+    logger.debug("DeleteMe: after conn.cursor()")
     if key and data:
+        logger.debug("DeleteMe: before pickle.dumps(data)")
         data_str = pickle.dumps(data)
-        c.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?, ?)',
+        logger.debug("DeleteMe: after pickle.dumps(data)")
+        cursor.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?, ?)',
                   (key, type, data_str, datetime.datetime.now()))
+        logger.debug("DeleteMe: after cursor.execute")
     else:
         for dataset in datasets:
             data_str = pickle.dumps(dataset['data'])
-            c.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?)',
+            cursor.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?)',
                       (dataset['key'], dataset['type'], data_str, datetime.datetime.now()))
 
     # 마지막 10000개만 유지하기
-    c.execute('SELECT COUNT(*) FROM callback_cache')
-    rowcount = c.fetchone()[0]
+    logger.debug("DeleteMe: before SELECT COUNT(*) FROM callback_cache")
+    cursor.execute('SELECT COUNT(*) FROM callback_cache')
+    logger.debug("DeleteMe: after SELECT COUNT(*) FROM callback_cache")
+    rowcount = cursor.fetchone()[0]
     if rowcount >= 10000:
-        c.execute('DELETE callback_cache WHERE idx NOT IN '
+        cursor.execute('DELETE callback_cache WHERE idx NOT IN '
                   '(SELECT idx FROM callback_cache ORDERY BY idx DESC LIMIT 10000);')
         logger.info('callback_cache 테이블에서 {}개의 row를 삭제했습니다.'.format(rowcount - rowcount))
 
+    logger.debug("DeleteMe: before commit")
     conn.commit()
     logger.debug('{}개의 데이타를 db에 저장했습니다.'.format(len(datasets) if datasets else 1))
 
