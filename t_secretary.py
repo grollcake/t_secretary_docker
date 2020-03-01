@@ -79,7 +79,7 @@ def db_open_cursor():
 
 def db_commit_cursor():
     logger.debug("before db_cursor.commit()")
-    db_cursor.commit()
+    conn.commit()
     db_cursor.close()
     logger.debug("after db_cursor.commit()")
 
