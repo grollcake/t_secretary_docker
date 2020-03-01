@@ -18,6 +18,7 @@ from helpers.torrent_search_torrentvery import torrent_search, torrent_popular_l
 
 bot = None
 conn = None
+db_cursor = None
 INTERACTIONS = {}
 logger = logging.getLogger('t_secretary')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -49,16 +50,14 @@ def init_log():
 
     sh = logging.StreamHandler()
     sh.setLevel(logging.INFO)
-    sh.setFormatter(
-        logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
-                          datefmt='%Y/%m/%d %H:%M:%S'))
+    sh.setFormatter(logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
+                                      datefmt='%Y/%m/%d %H:%M:%S'))
     logger.addHandler(sh)
 
     fh = RotatingFileHandler(filename=logfile, encoding='utf-8', maxBytes=10 * 1024 * 1024, backupCount=0)
     fh.setLevel(logging.DEBUG)
-    fh.setFormatter(
-        logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
-                          datefmt='%Y/%m/%d %H:%M:%S'))
+    fh.setFormatter(logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
+                                      datefmt='%Y/%m/%d %H:%M:%S'))
 
     logger.addHandler(fh)
     logger.info('log is initialized')
@@ -68,36 +67,40 @@ def get_md5(string):
     return hashlib.md5(string.encode('utf-8')).hexdigest()
 
 
-def db_set_data(key=None, type=None, data=None, datasets=None):
-    logger.debug("DeleteMe: before conn.cursor()")
+# commit 시 너무 느려지는 현상이 있어서 커서오픈/커밋을 한방에 처리하고자 별도 함수로 분리한다.
+def db_open_cursor():
     global conn
-    # cursor = conn.cursor()
-    logger.debug("DeleteMe: after conn.cursor()")
+    global db_cursor
+
+    db_cursor = conn.cursor()
+
+
+def db_commit_cursor():
+    logger.debug("before db_cursor.commit()")
+    db_cursor.commit()
+    db_cursor.close()
+    logger.debug("after db_cursor.commit()")
+
+
+def db_set_data(key=None, type=None, data=None, datasets=None):
     if key and data:
-        logger.debug("DeleteMe: before pickle.dumps(data)")
         data_str = pickle.dumps(data)
-        logger.debug("DeleteMe: after pickle.dumps(data)")
-        conn.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?, ?)',
-                     (key, type, data_str, datetime.datetime.now()))
-        logger.debug("DeleteMe: after cursor.execute")
+        db_cursor.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?, ?)',
+                  (key, type, data_str, datetime.datetime.now()))
     else:
         for dataset in datasets:
             data_str = pickle.dumps(dataset['data'])
-            conn.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?)',
-                         (dataset['key'], dataset['type'], data_str, datetime.datetime.now()))
+            db_cursor.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?)',
+                      (dataset['key'], dataset['type'], data_str, datetime.datetime.now()))
 
     # 마지막 10000개만 유지하기
-    logger.debug("DeleteMe: before SELECT COUNT(*) FROM callback_cache")
-    conn.execute('SELECT COUNT(*) FROM callback_cache')
-    logger.debug("DeleteMe: after SELECT COUNT(*) FROM callback_cache")
-    rowcount = conn.fetchone()[0]
+    db_cursor.execute('SELECT COUNT(*) FROM callback_cache')
+    rowcount = db_cursor.fetchone()[0]
     if rowcount >= 10000:
-        conn.execute('DELETE callback_cache WHERE idx NOT IN '
-                     '(SELECT idx FROM callback_cache ORDERY BY idx DESC LIMIT 10000);')
+        db_cursor.execute('DELETE callback_cache WHERE idx NOT IN '
+                  '(SELECT idx FROM callback_cache ORDERY BY idx DESC LIMIT 10000);')
         logger.info('callback_cache 테이블에서 {}개의 row를 삭제했습니다.'.format(rowcount - rowcount))
 
-    logger.debug("DeleteMe: before commit")
-    conn.commit()
     logger.debug('{}개의 데이타를 db에 저장했습니다.'.format(len(datasets) if datasets else 1))
 
 
@@ -129,8 +132,7 @@ def make_button_text(idx, torrent):
 
     if 'datetime' in torrent or 'size' in torrent:
         text2 = '('
-        text2 += '{:02d}/{:02d}, '.format(torrent['datetime'].month,
-                                          torrent['datetime'].day) if 'datetime' in torrent else ''
+        text2 += '{:02d}/{:02d}, '.format(torrent['datetime'].month, torrent['datetime'].day) if 'datetime' in torrent else ''
         text2 += '{}'.format(torrent['size']) if 'size' in torrent else ')'
         text2 += ')'
 
@@ -210,12 +212,16 @@ def chat_search(chat_id, keyword):
 
     select_list = list()
 
+    db_open_cursor()
+
     for idx, torrent in enumerate(torrents, start=1):
         button_text = make_button_text(idx, torrent)
 
         callback_key = get_md5(torrent['magnet']) if torrent['magnet'] else get_md5(torrent['page_url'])
         db_set_data(key=callback_key, type='TORRENT', data=torrent)  # DB에 저장
         select_list.append([InlineKeyboardButton(text=button_text, callback_data=callback_key)])
+
+    db_commit_cursor()
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=select_list)
 
@@ -295,11 +301,15 @@ def chat_popular(chat_id):
         bot.sendMessage(chat_id, '뭔가 문제가 생겼습니다.')
         return
 
+    db_open_cursor()
+
     for idx, popular in enumerate(populars, start=1):
         button_text = make_button_text(idx, popular)
         callback_key = get_md5(popular['page_url'])
         select_list.append([InlineKeyboardButton(text=button_text, callback_data=callback_key)])
         db_set_data(key=callback_key, type='POPULAR', data=popular['page_url'])  # DB에 저장
+
+    db_commit_cursor()
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=select_list)
 
@@ -347,6 +357,8 @@ def chat_files(chat_id, nas_path=None):
         bot.sendMessage(chat_id, '뭔가 오류가 발생했습니다\n{}'.format(error))
         return
 
+    db_open_cursor()
+
     for file in files:
         if file['isDirectory']:
             logger.debug(file)
@@ -356,6 +368,8 @@ def chat_files(chat_id, nas_path=None):
         else:
             file_cnt += 1
             file_list += '{}) {} ({})\n'.format(file_cnt, file['filename'], file['size'])
+
+    db_commit_cursor()
 
     if dir_list:
         keyboard = InlineKeyboardMarkup(inline_keyboard=dir_list)
@@ -440,13 +454,13 @@ def on_callback_query(msg):
     type, data = db_get_data(query_data)
 
     if type == 'TORRENT':
-        chat_search_step2(from_id, data)  # data -> torrent dict
+        chat_search_step2(from_id, data)    # data -> torrent dict
     elif type == 'MAGNET':
-        chat_add_magnet(chat_id=from_id, magnet=data)  # data -> magnet link
+        chat_add_magnet(chat_id=from_id, magnet=data)    # data -> magnet link
     elif type == 'POPULAR':
-        chat_popular_step2(from_id, data)  # data -> torrent page url
+        chat_popular_step2(from_id, data)   # data -> torrent page url
     elif type == 'DIRECTORY':
-        chat_files(from_id, data)  # data -> path of nas directory
+        chat_files(from_id, data)           # data -> path of nas directory
 
 
 def init_bot():
