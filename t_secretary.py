@@ -50,14 +50,16 @@ def init_log():
 
     sh = logging.StreamHandler()
     sh.setLevel(logging.INFO)
-    sh.setFormatter(logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
-                                      datefmt='%Y/%m/%d %H:%M:%S'))
+    sh.setFormatter(
+        logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
+                          datefmt='%Y/%m/%d %H:%M:%S'))
     logger.addHandler(sh)
 
     fh = RotatingFileHandler(filename=logfile, encoding='utf-8', maxBytes=10 * 1024 * 1024, backupCount=0)
     fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
-                                      datefmt='%Y/%m/%d %H:%M:%S'))
+    fh.setFormatter(
+        logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
+                          datefmt='%Y/%m/%d %H:%M:%S'))
 
     logger.addHandler(fh)
     logger.info('log is initialized')
@@ -86,19 +88,19 @@ def db_set_data(key=None, type=None, data=None, datasets=None):
     if key and data:
         data_str = pickle.dumps(data)
         db_cursor.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?, ?)',
-                  (key, type, data_str, datetime.datetime.now()))
+                          (key, type, data_str, datetime.datetime.now()))
     else:
         for dataset in datasets:
             data_str = pickle.dumps(dataset['data'])
             db_cursor.execute('INSERT INTO callback_cache (KEY, TYPE, DATA, CDT) VALUES (?, ?, ?)',
-                      (dataset['key'], dataset['type'], data_str, datetime.datetime.now()))
+                              (dataset['key'], dataset['type'], data_str, datetime.datetime.now()))
 
     # 마지막 10000개만 유지하기
     db_cursor.execute('SELECT COUNT(*) FROM callback_cache')
     rowcount = db_cursor.fetchone()[0]
     if rowcount >= 10000:
         db_cursor.execute('DELETE callback_cache WHERE idx NOT IN '
-                  '(SELECT idx FROM callback_cache ORDERY BY idx DESC LIMIT 10000);')
+                          '(SELECT idx FROM callback_cache ORDERY BY idx DESC LIMIT 10000);')
         logger.info('callback_cache 테이블에서 {}개의 row를 삭제했습니다.'.format(rowcount - rowcount))
 
     logger.debug('{}개의 데이타를 db에 저장했습니다.'.format(len(datasets) if datasets else 1))
@@ -132,7 +134,8 @@ def make_button_text(idx, torrent):
 
     if 'datetime' in torrent or 'size' in torrent:
         text2 = '('
-        text2 += '{:02d}/{:02d}, '.format(torrent['datetime'].month, torrent['datetime'].day) if 'datetime' in torrent else ''
+        text2 += '{:02d}/{:02d}, '.format(torrent['datetime'].month,
+                                          torrent['datetime'].day) if 'datetime' in torrent else ''
         text2 += '{}'.format(torrent['size']) if 'size' in torrent else ')'
         text2 += ')'
 
@@ -454,13 +457,13 @@ def on_callback_query(msg):
     type, data = db_get_data(query_data)
 
     if type == 'TORRENT':
-        chat_search_step2(from_id, data)    # data -> torrent dict
+        chat_search_step2(from_id, data)  # data -> torrent dict
     elif type == 'MAGNET':
-        chat_add_magnet(chat_id=from_id, magnet=data)    # data -> magnet link
+        chat_add_magnet(chat_id=from_id, magnet=data)  # data -> magnet link
     elif type == 'POPULAR':
-        chat_popular_step2(from_id, data)   # data -> torrent page url
+        chat_popular_step2(from_id, data)  # data -> torrent page url
     elif type == 'DIRECTORY':
-        chat_files(from_id, data)           # data -> path of nas directory
+        chat_files(from_id, data)  # data -> path of nas directory
 
 
 def init_bot():
