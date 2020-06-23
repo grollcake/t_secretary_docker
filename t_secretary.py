@@ -14,7 +14,7 @@ from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from helpers.config import get_config, set_config
 from helpers.download_station import ds_list, ds_add_magnet
 from helpers.nas_files import nas_files
-from helpers.torrent_search_torrentvery import torrent_search, torrent_popular_list, torrent_info_from_url
+from helpers.torrent_search_torrentser import torrent_search, torrent_popular_list, torrent_info_from_url
 
 bot = None
 conn = None
@@ -55,7 +55,8 @@ def init_log():
                           datefmt='%Y/%m/%d %H:%M:%S'))
     logger.addHandler(sh)
 
-    fh = RotatingFileHandler(filename=logfile, encoding='utf-8', maxBytes=10 * 1024 * 1024, backupCount=0)
+    fh = RotatingFileHandler(
+        filename=logfile, encoding='utf-8', maxBytes=10 * 1024 * 1024, backupCount=0)
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(
         logging.Formatter('%(asctime)s.%(msecs)03d:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d: %(message)s',
@@ -101,15 +102,18 @@ def db_set_data(key=None, type=None, data=None, datasets=None):
     if rowcount >= 10000:
         db_cursor.execute('DELETE callback_cache WHERE idx NOT IN '
                           '(SELECT idx FROM callback_cache ORDERY BY idx DESC LIMIT 10000);')
-        logger.info('callback_cache 테이블에서 {}개의 row를 삭제했습니다.'.format(rowcount - rowcount))
+        logger.info('callback_cache 테이블에서 {}개의 row를 삭제했습니다.'.format(
+            rowcount - rowcount))
 
-    logger.debug('{}개의 데이타를 db에 저장했습니다.'.format(len(datasets) if datasets else 1))
+    logger.debug('{}개의 데이타를 db에 저장했습니다.'.format(
+        len(datasets) if datasets else 1))
 
 
 def db_get_data(key):
     c = conn.cursor()
     try:
-        c.execute('SELECT type, data FROM callback_cache WHERE key = :key ORDER BY idx DESC;', {'key': key})
+        c.execute('SELECT type, data FROM callback_cache WHERE key = :key ORDER BY idx DESC;', {
+                  'key': key})
         datas = c.fetchone()
         logger.debug(datas)
     except sqlite3.Error as e:
@@ -128,7 +132,8 @@ def db_get_data(key):
 
 def make_button_text(idx, torrent):
     text1 = '{}) '.format(idx)
-    text1 += '[{}] '.format(torrent['category']) if ('category' in torrent and torrent['category'] is not None) else ''
+    text1 += '[{}] '.format(torrent['category']) if (
+        'category' in torrent and torrent['category'] is not None) else ''
     text1 += '{} '.format(torrent['subject'])
     text2 = ''
 
@@ -175,7 +180,8 @@ def user_interactions(chat_id, action, status=None, path=None):
         if INTERACTIONS.get(chat_id, None) is None:
             INTERACTIONS[chat_id] = {'path_buff': []}
         path_hash = get_md5(path)
-        INTERACTIONS[chat_id]['path_buff'].append({'hash': path_hash, 'path': path})
+        INTERACTIONS[chat_id]['path_buff'].append(
+            {'hash': path_hash, 'path': path})
         INTERACTIONS[chat_id]['path_buff'] = INTERACTIONS[chat_id]['path_buff'][-100:]
         return path_hash
 
@@ -220,9 +226,11 @@ def chat_search(chat_id, keyword):
     for idx, torrent in enumerate(torrents, start=1):
         button_text = make_button_text(idx, torrent)
 
-        callback_key = get_md5(torrent['magnet']) if torrent['magnet'] else get_md5(torrent['page_url'])
+        callback_key = get_md5(torrent['magnet']) if torrent['magnet'] else get_md5(
+            torrent['page_url'])
         db_set_data(key=callback_key, type='TORRENT', data=torrent)  # DB에 저장
-        select_list.append([InlineKeyboardButton(text=button_text, callback_data=callback_key)])
+        select_list.append([InlineKeyboardButton(
+            text=button_text, callback_data=callback_key)])
 
     db_commit_cursor()
 
@@ -230,7 +238,8 @@ def chat_search(chat_id, keyword):
 
     logger.debug(pprint.pformat(keyboard))
 
-    bot.sendMessage(chat_id, '{}개를 찾았습니다.'.format(len(select_list)), reply_markup=keyboard)
+    bot.sendMessage(chat_id, '{}개를 찾았습니다.'.format(
+        len(select_list)), reply_markup=keyboard)
 
 
 def chat_search_step2(chat_id, torrent):
@@ -240,7 +249,8 @@ def chat_search_step2(chat_id, torrent):
 
     logger.info(torrent)
     if torrent['magnet']:
-        chat_add_magnet(chat_id=chat_id, magnet=torrent['magnet'], subject=torrent['subject'], size=torrent['size'])
+        chat_add_magnet(
+            chat_id=chat_id, magnet=torrent['magnet'], subject=torrent['subject'], size=torrent['size'])
     else:
         chat_popular_step2(chat_id, torrent['page_url'])  # 한번 확인하고 다운받게 한다.
 
@@ -248,7 +258,8 @@ def chat_search_step2(chat_id, torrent):
 def chat_list(chat_id):
     config = get_config()
     try:
-        downloads = ds_list(host=config['DS_SERVER'], id=config['DS_USER'], pw=config['DS_PASS'])
+        downloads = ds_list(
+            host=config['DS_SERVER'], id=config['DS_USER'], pw=config['DS_PASS'])
     except Exception as e:
         logger.error('다운로드 목록 확인 중 오류가 발생했습니다.')
         logger.error(e)
@@ -258,7 +269,8 @@ def chat_list(chat_id):
     if downloads:
         msg = '{}개의 다운로드가 있습니다.\n\n'.format(len(downloads))
         for idx, download in enumerate(downloads, start=1):
-            msg += '{}) {} ({}, {})\n'.format(idx, download['title'], download['size'], download['status'])
+            msg += '{}) {} ({}, {})\n'.format(idx,
+                                              download['title'], download['size'], download['status'])
     else:
         msg = '진행 중인 다운로드가 없습니다.\n'
 
@@ -309,8 +321,10 @@ def chat_popular(chat_id):
     for idx, popular in enumerate(populars, start=1):
         button_text = make_button_text(idx, popular)
         callback_key = get_md5(popular['page_url'])
-        select_list.append([InlineKeyboardButton(text=button_text, callback_data=callback_key)])
-        db_set_data(key=callback_key, type='POPULAR', data=popular['page_url'])  # DB에 저장
+        select_list.append([InlineKeyboardButton(
+            text=button_text, callback_data=callback_key)])
+        db_set_data(key=callback_key, type='POPULAR',
+                    data=popular['page_url'])  # DB에 저장
 
     db_commit_cursor()
 
@@ -318,14 +332,16 @@ def chat_popular(chat_id):
 
     logger.debug(pprint.pformat(keyboard))
 
-    bot.sendMessage(chat_id, '{}개를 찾았습니다.'.format(len(select_list)), reply_markup=keyboard)
+    bot.sendMessage(chat_id, '{}개를 찾았습니다.'.format(
+        len(select_list)), reply_markup=keyboard)
 
 
 def chat_popular_step2(chat_id, url):
     torrent = torrent_info_from_url(url)
 
     # 묻지 않고 바로 다운로드 시작 (2020.01.12)
-    chat_add_magnet(chat_id=chat_id, magnet=torrent['magnet'], subject=torrent['subject'], size=torrent['size'])
+    chat_add_magnet(
+        chat_id=chat_id, magnet=torrent['magnet'], subject=torrent['subject'], size=torrent['size'])
 
     # # 토렌트 정보를 보여주고 진짜로 다운로드 받을거냐고 물어야 함
     # callback_key = get_md5(torrent['magnet'])
@@ -367,10 +383,12 @@ def chat_files(chat_id, nas_path=None):
             logger.debug(file)
             callback_key = get_md5(file['path'])
             db_set_data(key=callback_key, type='DIRECTORY', data=file['path'])
-            dir_list.append([InlineKeyboardButton(text=file['filename'], callback_data=callback_key)])
+            dir_list.append([InlineKeyboardButton(
+                text=file['filename'], callback_data=callback_key)])
         else:
             file_cnt += 1
-            file_list += '{}) {} ({})\n'.format(file_cnt, file['filename'], file['size'])
+            file_list += '{}) {} ({})\n'.format(file_cnt,
+                                                file['filename'], file['size'])
 
     db_commit_cursor()
 
@@ -385,14 +403,16 @@ def chat_files(chat_id, nas_path=None):
 def on_chat_message(msg):
     config = get_config()
     content_type, chat_type, chat_id = glance(msg)
-    logger.info('New message: content_type=[{}] chat_type=[{}] chat_id=[{}]'.format(content_type, chat_type, chat_id))
+    logger.info('New message: content_type=[{}] chat_type=[{}] chat_id=[{}]'.format(
+        content_type, chat_type, chat_id))
 
     # VALID_CHAT_USER가 공란이면 최초 채팅상대를 허용 목록에 등록한다.
     if 'VALID_CHAT_USERS' not in config or not config['VALID_CHAT_USERS']:
         logger.info('첫 대화 상대를 허용 목록에 추가합니다. chat_id: {}'.format(chat_id))
         set_config({'VALID_CHAT_USERS': [chat_id]})
     elif chat_id not in config['VALID_CHAT_USERS']:
-        bot.sendMessage(chat_id, '서비스를 이용할 수 없습니다.\n관리자에게 chat_id ({}) 등록을 요청하세요'.format(chat_id))
+        bot.sendMessage(
+            chat_id, '서비스를 이용할 수 없습니다.\n관리자에게 chat_id ({}) 등록을 요청하세요'.format(chat_id))
         return
 
     if content_type == 'text':
@@ -406,7 +426,8 @@ def on_chat_message(msg):
 
         elif user_input.startswith('/search'):
             if user_input == '/search':
-                user_interactions(chat_id=chat_id, action='set_status', status='wait_search_keyword')
+                user_interactions(
+                    chat_id=chat_id, action='set_status', status='wait_search_keyword')
                 bot.sendMessage(chat_id, '검색어를 입력하세요')
             else:
                 keyword = ' '.join(user_input.split(' ')[1::])
@@ -423,7 +444,8 @@ def on_chat_message(msg):
 
         elif user_input.startswith('/add'):
             if user_input == '/add':
-                user_interactions(chat_id=chat_id, action='set_status', status='wait_magnet_link')
+                user_interactions(
+                    chat_id=chat_id, action='set_status', status='wait_magnet_link')
                 bot.sendMessage(chat_id, '마그넷 주소를 입력하세요')
             else:
                 magnet = ' '.join(user_input.split(' ')[1::])
@@ -447,7 +469,8 @@ def on_chat_message(msg):
 
 def on_callback_query(msg):
     query_id, from_id, query_data = glance(msg, flavor='callback_query')
-    logger.debug('Callback Query: {} {} {}'.format(query_id, from_id, query_data))
+    logger.debug('Callback Query: {} {} {}'.format(
+        query_id, from_id, query_data))
 
     bot.answerCallbackQuery(query_id, text='Got it')
 
@@ -471,7 +494,8 @@ def init_bot():
     config = get_config()
     bot = Bot(config['BOT_TOKEN'])
     logger.info('Telegram bot is ready >>> {}'.format(bot.getMe()))
-    MessageLoop(bot, {'chat': on_chat_message, 'callback_query': on_callback_query}).run_as_thread()
+    MessageLoop(bot, {'chat': on_chat_message,
+                      'callback_query': on_callback_query}).run_as_thread()
 
 
 def main():
