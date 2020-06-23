@@ -137,11 +137,11 @@ def make_button_text(idx, torrent):
     text1 += '{} '.format(torrent['subject'])
     text2 = ''
 
-    if 'datetime' in torrent or 'size' in torrent:
+    if ('datetime' in torrent and torrent['datetime'] is not None) or ('size' in torrent and torrent['size'] is not None):
         text2 = '('
         text2 += '{:02d}/{:02d}, '.format(torrent['datetime'].month,
-                                          torrent['datetime'].day) if 'datetime' in torrent else ''
-        text2 += '{}'.format(torrent['size']) if 'size' in torrent else ')'
+                                          torrent['datetime'].day) if ('datetime' in torrent and torrent['datetime'] is not None) else ''
+        text2 += '{}'.format(torrent['size']) if ('size' in torrent and torrent['size'] is not None) else ')'
         text2 += ')'
 
     button_text = text1 + text2

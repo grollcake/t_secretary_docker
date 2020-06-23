@@ -13,7 +13,7 @@
 # python3 도커 이미지 사용
 FROM python:3
 
-MAINTAINER grollcake@gmail.com
+LABEL maintainer="grollcake@gmail.com"
 
 # 공식 이미지의 기본 작업경로는 /usr/src/app이다
 WORKDIR /usr/src/app
