@@ -81,7 +81,7 @@ def torrent_popular_list():
     logger = logging.getLogger('t_secretary')
     search_results = []
 
-    url = T_SITE + '/bbs/ranking.php'
+    url = T_SITE + '/bbs/board.php?bo_table=entertain'
     req = requests.get(url=url, verify=True)
     if not req.ok:
         print('Something wrong')
@@ -92,11 +92,11 @@ def torrent_popular_list():
     soup = BeautifulSoup(req.text, 'html.parser')
 
     # 예능 찾기
-    results = soup.select('tbody > tr')
+    results = soup.select('li.list-item')
     for idx, result in enumerate(results, start=1):
-        subject = result.select("td.list-subject > a")[0].text.strip()
+        subject = result.select('div.wr-subject > a')[0].text.strip()
         page_url = urljoin(url, result.select(
-            "td.list-subject > a")[0].get('href'))
+            'div.wr-subject > a')[0].get('href'))
         search_results.append({'subject': subject, 'page_url': page_url})
         logger.warning('{}) {} - {}'.format(idx, subject, page_url))
 
@@ -203,11 +203,11 @@ if __name__ == '__main__':
     # print(torrent_info_from_url('https://torrentvery.com/torrent_movieov/5932'))
     #r2 = torrent_search('놀면 뭐하니')
     # print(r2)
-    # rs = torrent_popular_list()
-    # print(len(rs))
+    rs = torrent_popular_list()
+    print(len(rs))
     # torrent_info_from_url(r2[0]["page_url"])
-    print(torrent_info_from_url(
-        'https://torrentsir8.com/bbs/board.php?bo_table=entertain&wr_id=14615'))
+    # print(torrent_info_from_url(
+    #    'https://torrentsir8.com/bbs/board.php?bo_table=entertain&wr_id=14615'))
     # r1 = torrent_info_from_url(rs[0]['url'])
     # print(r1)
     # pprint(r2)
