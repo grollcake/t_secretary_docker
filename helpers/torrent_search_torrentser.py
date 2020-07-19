@@ -8,7 +8,7 @@ import requests
 from requests.compat import urljoin
 from bs4 import BeautifulSoup
 
-T_SITE = 'https://torrentsir9.com'
+T_SITE = 'https://torrentsir11.com'
 
 
 def torrent_search(keyword):
